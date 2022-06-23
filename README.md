@@ -1,4 +1,4 @@
-# Teste Unitário com .Net 6 com xUnit
+# Testes Unitários com .Net 6 com xUnit
 
 Neste artigo vamos aprender sobre Teste Unitário e como ele pode ser implementado no .Net 6.
 
@@ -15,7 +15,7 @@ Um teste de unidade é o menor pedaço de código que pode ser logicamente isola
 * Qualidade: Melhore a qualidade de nossa base de código, ajude-nos a evitar o máximo possível de dívidas tecnológicas
 * Confiável: Quando os testes estão passando e sendo executados automaticamente podemos ter lançamentos mais suaves e mais frequentes
 
-## Criando Projeto de Testes
+## Criando o projeto de Testes
 
 Como projeto de exemplo, iremos criar uma aplicação simples simulando um caixa eletrônico e a disponibilização de saque de acordo com o valor solicitado e as cédulas disponíveis para saque.
 
