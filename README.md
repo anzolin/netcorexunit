@@ -264,3 +264,10 @@ namespace CaixaEletronico.Tests
 Agora vamos executar os testes a fim de verificar se tudo está ok.
 
 <img src="images/img_016.png" />
+
+## Links e materias interessantes 
+
+* [Melhores práticas de teste de unidade com .NET Core e .NET Standard](https://docs.microsoft.com/pt-br/dotnet/core/testing/unit-testing-best-practices)
+* [C# de teste de unidade no .NET Core usando dotnet test e xUnit](https://docs.microsoft.com/pt-br/dotnet/core/testing/unit-testing-with-dotnet-test)
+* [xunit.net](https://xunit.net/)
+* [Exemplo de teste da xunit.net](https://xunit.net/docs/getting-started/netcore/cmdline)
