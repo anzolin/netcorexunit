@@ -95,6 +95,13 @@ namespace CaixaEletronico.Domain
             var cedulasSacadas = new List<int>();
             var valorRestanteASerSacado = valor;
 
+            while (valorRestanteASerSacado >= Cedula.Duzentos)
+            {
+                cedulasSacadas.Add(Cedula.Duzentos);
+
+                valorRestanteASerSacado -= Cedula.Duzentos;
+            }
+
             while (valorRestanteASerSacado >= Cedula.Cem)
             {
                 cedulasSacadas.Add(Cedula.Cem);
@@ -121,6 +128,20 @@ namespace CaixaEletronico.Domain
                 cedulasSacadas.Add(Cedula.Dez);
 
                 valorRestanteASerSacado -= Cedula.Dez;
+            }
+
+            while (valorRestanteASerSacado >= Cedula.Cinco)
+            {
+                cedulasSacadas.Add(Cedula.Cinco);
+
+                valorRestanteASerSacado -= Cedula.Cinco;
+            }
+
+            while (valorRestanteASerSacado >= Cedula.Dois)
+            {
+                cedulasSacadas.Add(Cedula.Dois);
+
+                valorRestanteASerSacado -= Cedula.Dois;
             }
 
             if (cedulasSacadas.Count == 0)
