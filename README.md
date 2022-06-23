@@ -440,6 +440,159 @@ Para visualizar os testes por Traits, na aba Test Explorer, botão Group By, esc
 
 <img src="images/img_019.png" />
 
+## Teste de integração
+
+No teste de integração cobre a necessidade de testar a comunicação entre as camadas do sistema. Enquanto no teste de unidade testamos somente as partes de unidade isoladas no sistema, no teste de integração testamos o fluxo completo como por exemplo, uma api que recebe um requisição e vai até a base de dados realizar alguma operação. Neste tipo de teste devemos garantir o sucesso deste fluxo no sistema.
+
+Então, iremos criar um projeto do tipo Api
+
+<img src="images/img_020.png" />
+
+Escolha o nome "CaixaEletronico.Api"
+
+<img src="images/img_021.png" />
+
+Desmarque a opção "Use controllers" porque iremos criar uma Api com o mínimo de código possível
+
+<img src="images/img_022.png" />
+
+Após o projeto ser criado, faça uma referência para o projeto "CaixaEletronico.Domain" e modifique o código da classe "Program.cs" para:
+
+```csharp
+using CaixaEletronico.Domain;
+using Microsoft.AspNetCore.Mvc;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSingleton<ICaixa, Caixa>();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+var app = builder.Build();
+
+app.MapGet("/saque/{valor}", ([FromServices] ICaixa caixa, int valor) =>
+{
+    if (!caixa.ValidaCedulasDisponiveis(valor))
+        return Results.BadRequest("Valor não válido para saque. Notas disponíveis: 100, 50, 20 e 10");
+
+    return Results.Ok($"Receba seu saque: { string.Join(',', caixa.Saque(valor)) }");
+});
+
+app.UseHttpsRedirection();
+app.UseSwagger();
+app.UseSwaggerUI();
+app.Run();
+
+public partial class Program { }
+```
+
+Como você pode perceber, é um código bem enxuto com uma única requisição GET, com a responsabilidade de efetuar saques, legal não é?
+
+Agora vamos criar o projeto de teste de integração.
+
+Em Solution Explorer, vamos adicionar um projeto do tipo "xUnit Test Project"
+
+<img src="images/img_023.png" />
+
+Crie o projeto com o nome "CaixaEletronico.IntegrationTests"
+
+<img src="images/img_024.png" />
+
+Escolha ".Net 6.0 (Long-term support)" que é a última versão disponível do .net até a data de criação deste tutorial
+
+<img src="images/img_025.png" />
+
+Pronto, agora temos uma estrutura básica para inciarmos o projeto de testes.
+
+Novamente em Solution Explorer, para o projeto de teste de integração, referencie o projeto Api e também adicione os dois pacotes Nuget:
+
+* [Microsoft.AspNetCore.App](https://www.nuget.org/packages/Microsoft.AspNetCore.App/)
+* [Microsoft.AspNetCore.Mvc.Testing](https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.Testing/)
+
+## Fixtures
+
+A criação de Fixture para teste de integração em api é muito similar ao utilizado anteriormente para teste de unidade. A fixture criada neste exemplo lhe dará poder de interagir com camada de Api e testar todo fluxo dali em diante.
+
+Você deve criar uma classe similar a classe Startup, mas, preferencialmente removendo todas dependências e serviços desnecessários para o teste de integração, como por exemplo swagger. Caso você utilize swagger em seu projeto, no startup do teste de integração seria desnecessário a ativação deste serviço. O projeto Api deve ser referenciado no seu projeto de teste de integração, aqui vamos chamá-la de TestApplication.cs.
+
+```csharp
+using CaixaEletronico.Domain;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
+namespace CaixaEletronico.IntegrationTests
+{
+    public class TestApplication : WebApplicationFactory<Program>
+    {
+        protected override IHost CreateHost(IHostBuilder builder)
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.AddScoped<ICaixa, Caixa>();
+            });
+
+            return base.CreateHost(builder);
+        }
+    }
+}
+```
+
+E por fim podemos implementar os testes e utilizar a configuração de Fixture criada acima.
+
+```csharp
+using System.Net;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace CaixaEletronico.IntegrationTests
+{
+    public class FixturesTest
+    {
+        [Theory(DisplayName = "Efetua Saque via api")]
+        [InlineData(80)]
+        [InlineData(300)]
+        [InlineData(500)]
+        public async Task Efetua_Saque_Via_Api(int valorSaque)
+        {
+            await using var application = new TestApplication();
+            using var client = application.CreateClient();
+
+            var request = await client.PostAsJsonAsync($"/saque/{valorSaque}", new { });
+            var response = await request.Content.ReadAsStringAsync();
+
+            Assert.True(request.IsSuccessStatusCode);
+            Assert.Contains("Receba seu saque", response);
+        }
+
+        [Theory(DisplayName = "Não Efetua Saque via api")]
+        [InlineData(5)]
+        [InlineData(15)]
+        [InlineData(38)]
+        public async Task Nao_Efetua_Saque_Via_Api(int valorSaque)
+        {
+            await using var application = new TestApplication();
+            using var client = application.CreateClient();
+
+            var request = await client.PostAsJsonAsync($"/saque/{valorSaque}", new { });
+            var response = await request.Content.ReadAsStringAsync();
+
+            Assert.False(request.IsSuccessStatusCode);
+            Assert.Contains("Valor não válido para saque", response);
+            Assert.Equal(HttpStatusCode.BadRequest, request.StatusCode);
+        }
+    }
+}
+```
+
+Agora você pode ir Test Explorer e executar todos os testes, se você seguiu todos os passos corretamente todos os testes irão passar!
+
+<img src="images/img_026.png" />
+
+Gosto muito de criar testes com xUnit e creio que se você ainda não cria testes também irá gostar. Ele tem uma maneira que julgo mais enxuta e pratica de implementar os testes. Espero que as dicas acima lhes ajudem a implementar os testes em seu sistema.
+
+
 ## Links e materias interessantes 
 
 * [Melhores práticas de teste de unidade com .NET Core e .NET Standard](https://docs.microsoft.com/pt-br/dotnet/core/testing/unit-testing-best-practices)
