@@ -50,13 +50,10 @@ namespace CaixaEletronico.Domain
 {
     public static class Cedula
     {
-        public static int Duzentos => 200;
         public static int Cem => 100;
         public static int Cinquenta => 50;
         public static int Vinte => 20;
         public static int Dez => 10;
-        public static int Cinco => 5;
-        public static int Dois => 2;
     }
 }
 ```
@@ -95,13 +92,6 @@ namespace CaixaEletronico.Domain
             var cedulasSacadas = new List<int>();
             var valorRestanteASerSacado = valor;
 
-            while (valorRestanteASerSacado >= Cedula.Duzentos)
-            {
-                cedulasSacadas.Add(Cedula.Duzentos);
-
-                valorRestanteASerSacado -= Cedula.Duzentos;
-            }
-
             while (valorRestanteASerSacado >= Cedula.Cem)
             {
                 cedulasSacadas.Add(Cedula.Cem);
@@ -130,20 +120,6 @@ namespace CaixaEletronico.Domain
                 valorRestanteASerSacado -= Cedula.Dez;
             }
 
-            while (valorRestanteASerSacado >= Cedula.Cinco)
-            {
-                cedulasSacadas.Add(Cedula.Cinco);
-
-                valorRestanteASerSacado -= Cedula.Cinco;
-            }
-
-            while (valorRestanteASerSacado >= Cedula.Dois)
-            {
-                cedulasSacadas.Add(Cedula.Dois);
-
-                valorRestanteASerSacado -= Cedula.Dois;
-            }
-
             if (cedulasSacadas.Count == 0)
                 throw new System.Exception("Não há cedulas disponíveis para o valor solicitado.");
 
@@ -158,19 +134,7 @@ namespace CaixaEletronico.Domain
 }
 ```
 
-Bem, nós acabamos de criar nosso projeto com as regras de negócio de um caixa eletrônico fictício com as funções de saque e validar cédulas disponíveis. Então vamos falar sobre testes.
-
-## Teste de unidade
-
-Podemos afirmar que um teste de unidade é basicamente o teste da menor parte testável de um programa. Ou seja, neste caso devemos então testar as funções ou métodos de nossas classes no projeto, pois esta é a menor parte de unidade testável. Com xUnit temos diversas funcionalidade para nos auxiliar a implementar o teste de unidade. Irei exemplificar alguns deles a seguir.
-
-## Facts
-
-Com xUnit a criação de um teste simples pode ser feita com com um método adicionando sobre ele o atributo Fact. Para assegurar que o teste deve obedecer algum resultado esperado utilizamos a class Assert. Na classe Assert temos uma grande lista de possibilidades, como verificar se resultado é falso, verdadeiro, igual, maior, menor, nulo e até se deve esperar alguma exceção.
-
-## Theories
-
-Existem situações onde o valor de entrada pode ter valor mutável. E neste caso para evitar escrever vários Assert ou vários métodos de teste para testar a mesma função alterando somente o valor de entrada temos o atributo Theory. Para informar o valor de entrada utilizado no teste utilizamos o atributo InlineData e passamos os valores necessários.
+Bem, nós acabamos de criar nosso projeto com as regras de negócio de um caixa eletrônico fictício com as funções de saque e validar cédulas disponíveis.
 
 Agora iremos criar os testes para validar essas funções.
 
@@ -193,6 +157,14 @@ Pronto, agora temos uma estrutura básica para inciarmos o projeto de testes
 Em Solution Explorer, para o projeto de testes, referencie o projeto da camada de domínio
 
 <img src="images/img_013.png" />
+
+## Teste de unidade
+
+Podemos afirmar que um teste de unidade é basicamente o teste da menor parte testável de um programa. Ou seja, neste caso devemos então testar as funções ou métodos de nossas classes no projeto, pois esta é a menor parte de unidade testável. Com xUnit temos diversas funcionalidade para nos auxiliar a implementar o teste de unidade. Irei exemplificar alguns deles a seguir.
+
+## Facts
+
+Com xUnit a criação de um teste simples pode ser feita com com um método adicionando sobre ele o atributo Fact. Para assegurar que o teste deve obedecer algum resultado esperado utilizamos a class Assert. Na classe Assert temos uma grande lista de possibilidades, como verificar se resultado é falso, verdadeiro, igual, maior, menor, nulo e até se deve esperar alguma exceção.
 
 Agora vamos criar uma classe de teste chamada "NormalAssertsTest.cs" que consiste nas testes assertivos
 
@@ -231,6 +203,10 @@ namespace CaixaEletronico.Tests
 }
 ```
 
+## Theories
+
+Existem situações onde o valor de entrada pode ter valor mutável. E neste caso para evitar escrever vários Assert ou vários métodos de teste para testar a mesma função alterando somente o valor de entrada temos o atributo Theory. Para informar o valor de entrada utilizado no teste utilizamos o atributo InlineData e passamos os valores necessários.
+
 Agora vamos criar uma classe de teste chamada "TheoriesTest.cs" que consiste nas testes de valor mutável
 
 <img src="images/img_015.png" />
@@ -264,6 +240,205 @@ namespace CaixaEletronico.Tests
 Agora vamos executar os testes a fim de verificar se tudo está ok.
 
 <img src="images/img_016.png" />
+
+## Moq e NSubstitute
+
+Quando falamos em realizar um mock de teste, queremos dizer que vamos simular execução da ação, imitar o comportamento de algum objeto real. Para esta necessidade contamos com algumas bibliotecas e dentre elas irei apresentar exemplos de uso com NSubstitute e Moq. Estes também podem ser instalados via nuget.
+
+* [Moq](https://github.com/moq/moq)
+* [NSubstitute](https://nsubstitute.github.io/)
+
+Instale os dois pacotes
+
+<img src="images/img_017.png" />
+
+Agora vamos criar uma classe de teste chamada "MoqTest.cs", com o seguinte código:
+
+```csharp
+using CaixaEletronico.Domain;
+using Moq;
+using NSubstitute;
+using System;
+using Xunit;
+
+namespace CaixaEletronico.Tests
+{
+    public class MoqTest
+    {
+        [Fact(DisplayName = "Mock saque com sucesso NSubstitute")]
+        public void Saque_Com_Sucesso_NSUb()
+        {
+            // Cria objeto mock
+            var caixa = Substitute.For<ICaixa>();
+            var valorDoSaque = 50;
+
+            // Efetua simulação de saque e assegura que retorno é int de array
+            caixa.Saque(valorDoSaque).Returns(Array.Empty<int>());
+
+            // Confirma que método foi executado uma unica vez
+            caixa.Received(1);
+        }
+
+        [Fact(DisplayName = "Mock saque com sucesso Moq")]
+        public void Saque_Com_Sucesso_Moq()
+        {
+            // Cria objeto mock
+            var caixa = new Mock<ICaixa>();
+            var valorDoSaque = 50;
+
+            // Efetua simulação de saque
+            caixa.Object.Saque(valorDoSaque);
+            
+            // Confirma que método foi executado uma unica vez
+            caixa.Verify(r => r.Saque(valorDoSaque), Times.Once);
+        }
+    }
+}
+```
+
+## FluentAssertions
+
+Esta é uma alternativa para a utilização da classe Assert. Caso você prefira uma escrita mais fluente, com estilo de programação funcional, este é o pacote ideal. O pacote pode FluentAssertions ser instalado via nuget.
+
+* [FluentAssertions](https://fluentassertions.com/)
+
+<img src="images/img_018.png" />
+
+Nesta implementação realizamos o teste na classe Cedula para ter certeza que nenhum valor correspondente ao atributo ao qual ele foi delegado mudou durante o desenvolvimento ou está incorreto.
+
+Vamos criar uma classe de teste chamada "FluentAssertionsTest.cs", com o seguinte código:
+
+```csharp
+using CaixaEletronico.Domain;
+using FluentAssertions;
+using Xunit;
+
+namespace CaixaEletronico.Tests
+{
+    public class FluentAssertionsTest
+    {
+        [Fact(DisplayName = "Valores do modelo cedula estão corretos")]
+        public void ValoresModeloCedulaEstaoCorretos()
+        {
+            Cedula.Cem.Should().Be(100);
+            Cedula.Cinquenta.Should().BeOfType(typeof(int)).And.Be(50);
+            Cedula.Vinte.Should().BeOfType(typeof(int)).And.Be(20);
+            Cedula.Dez.Should().BeOfType(typeof(int)).And.Be(10);
+        }
+
+
+        [Fact(DisplayName = "Intervalos de valores do modelo cedula estão corretos")]
+        public void IntervalosValoresModeloCedulaEstaoCorretos()
+        {
+            Cedula.Cinquenta.Should().BeLessThan(Cedula.Cem);
+            Cedula.Dez.Should().BeLessThan(Cedula.Vinte);
+        }
+    }
+}
+```
+
+## Fixtures
+
+Quando criamos um objeto no construtor da classe de teste, que é equivalente ao TestInitialize do MSTest ou SetUp do NUnit, em cada teste executado é feita a instancia do objeto que esta no construtor. Com Fixtures temos a possibilidade de ter um contexto compartilhado. Logo, caso haja a necessidade de evitar instanciar o mesmo objeto varias vezes e disponibilizar para toda a suite de teste, o uso de Fixture é uma ótima solução. Para criar uma Fixture e para testar por exemplo, sua camada de modelo, com as injeções de independência e disponibilização do contexto, devemos criar uma classe que servirá de classe Fixture.
+
+```csharp
+using CaixaEletronico.Domain;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace CaixaEletronico.Tests
+{
+    public class IntegrationTestFixture
+    {
+        public IntegrationTestFixture()
+        {
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddTransient<ICaixa, Caixa>();
+
+            ServiceProvider = serviceCollection.BuildServiceProvider();
+        }
+
+        public ServiceProvider ServiceProvider { get; private set; }
+    }
+}
+```
+
+Para utilizar esta classe na sua classe de teste basta herdar IClassFixture<IntegrationTestFixture> e no construtor receber a Fixture criada como injeção de dependência. Segue exemplo abaixo:
+
+```csharp
+using CaixaEletronico.Domain;
+using Microsoft.Extensions.DependencyInjection;
+using Xunit;
+
+namespace CaixaEletronico.Tests
+{
+    public class FixturesTest : IClassFixture<IntegrationTestFixture>
+    {
+        private ICaixa _caixa;
+
+        public FixturesTest(IntegrationTestFixture fixture)
+        {
+            _caixa = fixture.ServiceProvider.GetRequiredService<ICaixa>();
+        }
+
+        [Fact]
+        public void SaqueContemMenorNumeroDeCedulas()
+        {
+            var quantidadeDeCedulas = 3;
+            var valorDoSaque = 80;
+
+            var resultadoCedulas = _caixa.Saque(valorDoSaque);
+
+            Assert.Equal(quantidadeDeCedulas, resultadoCedulas.Count);
+        }
+    }
+}
+```
+
+## Traits
+
+Organize os seus testes utilizando as Traits do xUnit. Na aba Test Explorer do visual studio, você pode organizar a visualização dos testes por classes, projeto, namespace e… Traits. Ao utilizar Traits é possível por exemplo criar grupos por domino, como testes de cliente, conta, investimentos…
+
+Ao utilizar o atributo Trait devemos informar dois parâmetros string, nome e valor do Trait. Como no exemplo [Trait("Operação","Saque")] .
+
+Vamos criar uma classe de teste chamada "TraitsTest.cs", com o seguinte código:
+
+```csharp
+using CaixaEletronico.Domain;
+using Microsoft.Extensions.DependencyInjection;
+using Xunit;
+
+namespace CaixaEletronico.Tests
+{
+    public class TraitsTest : IClassFixture<IntegrationTestFixture>
+    {
+        private ICaixa _caixa;
+
+        public TraitsTest(IntegrationTestFixture fixture)
+        {
+            _caixa = fixture.ServiceProvider.GetRequiredService<ICaixa>();
+        }
+
+        [Fact(DisplayName = "Saque contem numero de cedulas igual ao predito")]
+        [Trait("Operacao", "Saque")]
+        public void Saque_Contem_Numero_De_Cedulas_Igual_Ao_Predito()
+        {
+            //Arrange
+            int quantidadeDeCedulas = 3;
+            int valorDoSaque = 80;
+
+            //Act
+            var resultadoCedulas = _caixa.Saque(valorDoSaque);
+
+            //Assert
+            Assert.Equal(quantidadeDeCedulas, resultadoCedulas.Count);
+        }
+    }
+}
+```
+
+Para visualizar os testes por Traits, na aba Test Explorer, botão Group By, escolha a opção Traits.
+
+<img src="images/img_019.png" />
 
 ## Links e materias interessantes 
 
