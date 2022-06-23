@@ -158,7 +158,7 @@ namespace CaixaEletronico.Domain
 }
 ```
 
-Bem, nós acabamos de criar nosso projeto com as regras de negócio de um caixa eletrônico fictício com as funções de saque e validar cédulas disponíveis. Então vamso falar sobre testes.
+Bem, nós acabamos de criar nosso projeto com as regras de negócio de um caixa eletrônico fictício com as funções de saque e validar cédulas disponíveis. Então vamos falar sobre testes.
 
 ## Teste de unidade
 
