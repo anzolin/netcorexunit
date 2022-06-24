@@ -593,7 +593,7 @@ Agora você pode ir Test Explorer e executar todos os testes, se você seguiu to
 Gosto muito de criar testes com xUnit e creio que se você ainda não cria testes também irá gostar. Ele tem uma maneira que julgo mais enxuta e pratica de implementar os testes. Espero que as dicas acima lhes ajudem a implementar os testes em seu sistema.
 
 
-## Links e materias interessantes 
+## Links e materiais interessantes 
 
 * [Melhores práticas de teste de unidade com .NET Core e .NET Standard](https://docs.microsoft.com/pt-br/dotnet/core/testing/unit-testing-best-practices)
 * [C# de teste de unidade no .NET Core usando dotnet test e xUnit](https://docs.microsoft.com/pt-br/dotnet/core/testing/unit-testing-with-dotnet-test)
